@@ -1,0 +1,42 @@
+stages:
+  - build
+  - deploy
+
+build:
+  image: 
+    name: node:20.6-alpine
+    pull_policy: if-not-present
+  stage: build
+  script:
+    - npm install
+    - npm run build
+    - ls -la
+  artifacts:
+    paths:
+      - $CI_PROJECT_DIR/out
+    untracked: false
+    expire_in: "30 days"
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+     - node_modules
+    policy: pull  
+#
+gcs-deploy:
+  image: 
+    name: google/cloud-sdk        
+    pull_policy: if-not-present
+  stage: deploy
+  only:
+    - main
+  
+  before_script:
+  - echo $GOOGLE_APPLICATION_CREDENTIALS > service_account.json
+  - gcloud auth activate-service-account --key-file service_account.json
+  - export GOOGLE_APPLICATION_CREDENTIALS="./service_account.json"
+
+  script:
+  - gsutil -m -o "GSUtil:parallel_process_count=1" cp -r -z js,css ./out/* gs://site-kuberlink-production
+  - gsutil iam ch allUsers:objectViewer gs://site-kuberlink-production

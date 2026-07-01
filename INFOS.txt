@@ -1,0 +1,281 @@
+Adicione um dropdown de login na versão mobile dentro do menu de navegação.
+Adicione um formulário de login real nestas páginas usando NextUI.
+
+Crie um middleware para proteger estas rotas e redirecionar usuários não autenticados.
+	Como adicionar diferentes níveis de permissão (Roles) para as rotas de Admin e Cliente no middleware?
+
+Como posso implementar a função de Logout para remover esse cookie?
+Como posso validar se o token é legítimo dentro do middleware antes de permitir o acesso?
+
+Como fazer a verificação de Role (Admin/Client) usando este novo AuthGuard?
+
+Como desabilitar a opção "output: export" no arquivo next.config.js?
+
+----------------
+Opção 2: Implementar proteção no lado do cliente (Para sites estáticos)
+Se você precisa da exportação estática (ex: para hospedar no GitHub Pages ou S3), você deve remover o arquivo middleware.ts e mover a lógica de proteção para um componente ou layout no lado do cliente.
+
+Aqui estão as mudanças necessárias para a Opção 2:
+
+1. Atualize as ações de autenticação
+Como em sites estáticos não temos o servidor rodando para gerenciar cookies via next/headers, precisamos manipular os cookies diretamente no navegador.
+
+auth.ts
+-17
++7
+ Show full code block 
+'use server'
+
+import { cookies } from 'next/headers'
+
+export async function createSession(token: string) {
+  const cookieStore = cookies()
+  
+  // Define o cookie 'auth-token' que o seu middleware espera
+  cookieStore.set('auth-token', token, {
+    httpOnly: true, // Impede acesso via JavaScript no cliente (mais seguro)
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 60 * 60 * 24 * 7, // Expira em 7 dias
+    path: '/',
+  })
+export function createSession(token: string) {
+  // Em exportação estática, usamos document.cookie. 
+  // Nota: O cookie NÃO pode ser 'httpOnly' para que o cliente consiga verificar a sessão.
+  const secure = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : '';
+  document.cookie = `auth-token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax${secure}`;
+}
+
+export async function removeSession() {
+  const cookieStore = cookies()
+  cookieStore.delete('auth-token')
+export function removeSession() {
+  document.cookie = "auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+}
+2. Remova o Middleware
+Você deve deletar o arquivo /home/audalio/Projetos/site-kuberlink/middleware.ts, caso contrário o erro de build persistirá.
+
+3. Crie um componente de proteção (AuthGuard)
+Crie um novo arquivo para envolver suas rotas protegidas:
+
+New file: AuthGuard.tsx
++23
+ Show full code block 
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+export default function AuthGuard({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Função simples para ler cookies no cliente
+    const hasToken = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("auth-token="));
+
+    if (!hasToken) {
+      // Se não houver token, redireciona para a Home
+      router.push("/");
+    }
+  }, [router]);
+
+  // Opcional: Adicionar um loading enquanto verifica
+  return <>{children}</>;
+}
+4. Proteja as rotas no Layout
+Vá até o arquivo de layout da pasta /welcome (ou crie um em app/welcome/layout.tsx) e envolva o conteúdo com o AuthGuard:
+
+typescriptreact
+import AuthGuard from "@/app/components/AuthGuard";
+
+export default function WelcomeLayout({ children }: { children: React.ReactNode }) {
+  return <AuthGuard>{children}</AuthGuard>;
+}
+Resumo das diferenças:
+Middleware: Protege a rota antes mesmo da página começar a carregar (lado do servidor).
+AuthGuard (Client-side): A página começa a carregar no navegador e o JavaScript verifica o cookie para decidir se redireciona (lado do cliente). É a única forma de fazer isso em sites 100% estáticos.
+----------------
+
+V - Adicione um formulário de login real nestas páginas usando NextUI
+
+V - Para os formulários de login, adicione as seguintes funcionalidades:
+. Validação de campos e uma mensagem de erro caso o login falhe.
+. Um botão para "esqueci minha senha" e 
+. Mostrar/esconder a senha no Input.
+
+Otimize o componente Sections para melhorar a performance de renderização do loop de serviços.
+
+Como posso adicionar uma animação de fade-in quando as seções de serviços aparecerem na tela?
+
+------------------
+
+Como configurar o Prisma com Supabase em um projeto Next.js?
+
+==> Como integrar o Firebase Auth com o componente Header.tsx para login?
+
+------
+
+Como criar regras de segurança no Firestore para restringir acesso apenas a admins?
+
+Como persistir a sessão do Firebase usando Cookies para suporte a SSR no Next.js?
+
+-----
+Como criar um formulário de login customizado no Header.tsx em vez de usar credenciais fixas?
+
+Como recuperar o Grupo e as Regras do Firestore logo após o login do Admin?
+
+==================================================
+admin@kuberlink.com.br
+123adm.
+QiT9CI4TThfQ5TBqMdztb3aGmoE2
+
+
+audalio@kuberlink.com
+audalio-kuber1
+QiT9CI4TThfQ5TBqMdztb3aGmoE2
+
+==================================================
+
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyC_jyj7oaOgHgQ1SaAgZPJOd6AlyNRdBH4",
+  authDomain: "site-kuberlink.firebaseapp.com",
+  projectId: "site-kuberlink",
+  storageBucket: "site-kuberlink.firebasestorage.app",
+  messagingSenderId: "633336824223",
+  appId: "1:633336824223:web:7bf0aa9ecd1f7091613daa",
+  measurementId: "G-YJFZQ813CN"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+==============================
+NEXT_PUBLIC_FIREBASE_API_KEY=seu_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=seu_auth_domain
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=seu_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=seu_storage_bucket
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=seu_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=seu_app_id
+
+
+NEXT_PUBLIC_FIREBASE_API_KEY="AIzaSyC_jyj7oaOgHgQ1SaAgZPJOd6AlyNRdBH4"
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="site-kuberlink.firebaseapp.com"
+NEXT_PUBLIC_FIREBASE_PROJECT_ID="site-kuberlink"
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="site-kuberlink.firebasestorage.app"
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="633336824223"
+NEXT_PUBLIC_FIREBASE_APP_ID="1:633336824223:web:7bf0aa9ecd1f7091613daa"
+NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="G-YJFZQ813CN"
+
+---------------
+import { initializeApp, getApps } from "firebase/app";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+
+const auth = getAuth(app);
+const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
+
+export { auth, db, googleProvider };
+
+==============================
+Para implementar o fluxo de: Selecionar Perfil -> Digitar Credenciais -> Validar no Banco -> Redirecionar, precisamos transformar o conteúdo do Modal em um formulário dinâmico.
+
+O que mudou?
+Estado loginMode: Agora o Modal começa em "select". Se você clica em "SOU ADMIN", o estado muda para "admin", e o React troca os botões pelos campos de E-mail e Senha.
+
+Campos de Entrada: Usei os componentes Input do NextUI para coletar o que o usuário digita.
+
+Validação por Coleção:
+Se você logar como Admin, o código tenta ler o documento na coleção admins.
+Se você logar como Cliente, ele tenta ler na coleção clients.
+Isso impede que um cliente consiga logar usando a opção de Admin (e vice-versa), mesmo que a senha do Firebase Auth esteja correta.
+
+Redirecionamento dinâmico: O router.push agora utiliza o loginMode para decidir se vai para /welcome/admin ou /welcome/client.
+
+Dica importante: Como você ainda não tem clientes cadastrados no banco de dados, o login de cliente vai dar erro (alert) até que você crie um documento para o UID dele na coleção clients no Firestore.
+
+==> Como criar automaticamente o documento do Cliente no Firestore após o primeiro login?
+
+Como exibir uma mensagem de erro específica para "Senha Incorreta" ou "Usuário não encontrado"?
+
+========================
+Para criar automaticamente o documento do cliente (ou do administrador) no Firestore assim que o login for bem-sucedido pela primeira vez, você deve ajustar a lógica de verificação dentro da função handleLogin.
+
+Atualmente, o seu código possui uma trava que lança um erro caso o documento não exista e o perfil não seja "admin". Para permitir a criação automática para ambos os perfis, basta remover essa restrição e generalizar o uso do setDoc utilizando a variável collectionName.
+
+
+O que foi alterado:
+
+Generalização: O setDoc agora usa collectionName, servindo tanto para a coleção admins quanto para clients.
+Remoção da Trava: Removi o else if que impedia usuários sem documento prévio de acessarem o sistema. Agora, se o e-mail e senha estiverem corretos no Firebase Auth, o sistema cria o perfil no banco de dados automaticamente.
+Novos Campos: Adicionei o campo createdAt para que você saiba quando aquele cliente se registrou pela primeira vez, além do lastLoginAt.
+Importante: Certifique-se de que as suas Security Rules no Firestore permitam a escrita na coleção clients para usuários autenticados, caso contrário, a função setDoc falhará.
+
+Como atualizar o campo 'lastLoginAt' em cada login sem sobrescrever os dados existentes?
+
+Como configurar as Regras de Segurança do Firestore para permitir que clientes criem seus próprios documentos?
+
+====================
+1. Criando Documentos via Código (Automatização)
+No seu arquivo Header.tsx, você já tem a lógica básica. Vou sugerir uma pequena melhoria: garantir que, se o documento já existir, nós apenas atualizemos o horário do último login, e se não existir, ele seja criado do zero.
+
+2. Criando Documentos Manualmente (Console Firebase)
+Se você quiser criar um usuário Admin ou Cliente manualmente sem precisar passar pelo formulário de login, siga estes passos no navegador:
+
+Acesse o Console do Firebase.
+No menu lateral, clique em Firestore Database.
+Clique em "Iniciar coleção" (se estiver vazio) ou "Adicionar coleção".
+Digite o ID da coleção: admins (ou clients).
+No campo ID do documento, é crucial usar o UID do usuário (que você encontra na aba "Authentication").
+Adicione os campos:
+email (string)
+role (string): "admin" ou "client"
+createdAt (timestamp)
+lastLoginAt (timestamp)
+Como saber se funcionou?
+Assim que você realizar o login no site com o e-mail admin@kuberlink.com, o Firebase executará o setDoc. Você verá instantaneamente uma nova coleção aparecer no seu painel do Firestore com os dados do usuário.
+
+Por que usar o UID como ID do documento?
+Ao usar o UID (loggedUser.uid) como nome do documento, você garante que cada usuário tenha exatamente um registro no banco de dados, facilitando buscas futuras e regras de segurança (ex: um usuário só pode ler o documento cujo ID seja igual ao seu próprio UID).
+
+Se precisar de ajuda para criar as Regras de Segurança para que um cliente não consiga ler os dados de um admin, me avise!
+
+Como configurar as regras de segurança no Firestore para proteger a coleção 'admins'?
+
+Como exibir os dados do documento do usuário logado na tela de boas-vindas?
+
+==================================
+
+Sim, exatamente! Para que o código que escrevemos no Header.tsx consiga salvar as informações dos administradores e clientes, o serviço do Firestore precisa ser ativado no seu projeto através do Console do Firebase.
+
+Pode clicar em Criar banco de dados e seguir estes passos:
+
+Localização do Banco de Dados: Escolha uma região próxima de você ou dos seus usuários. Se você estiver no Brasil, a opção southamerica-east1 (São Paulo) é a mais recomendada para garantir menor latência.
+Regras de Segurança:
+O Firebase perguntará se deseja iniciar no Modo de Produção ou Modo de Teste.
+Para facilitar o desenvolvimento inicial, você pode escolher o Modo de Teste. Isso permitirá que seu site grave os documentos sem restrições nos primeiros 30 dias.
+Importante: Depois que o banco estiver criado, você deve ir na aba "Regras" (Rules) e colar aquelas regras de segurança que conversamos anteriormente para proteger a coleção admins.
+Finalizar: Após concluir o assistente, o Firestore estará pronto.
+Assim que você ativar o banco de dados, tente fazer o login novamente no seu site. O código que já incluímos no Header.tsx se encarregará de:
+
+Verificar se o usuário existe no Authentication.
+Criar a coleção admins (ou clients) automaticamente.
+Criar o documento com o UID do usuário.
+Você não precisa criar as coleções manualmente; elas surgirão no console assim que o primeiro login for realizado com sucesso.
+
+
+
