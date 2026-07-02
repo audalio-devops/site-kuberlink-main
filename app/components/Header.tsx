@@ -2,6 +2,7 @@ import Image from "next/image";
 import React, { useState } from "react";
 import { Modal, ModalContent, ModalHeader, ModalBody } from "@nextui-org/modal";
 import { useDisclosure } from "@nextui-org/react";
+import Link from "next/link";
 
 interface HeaderProps {
   handleOpen: (key: string) => void;
@@ -21,67 +22,82 @@ const Header: React.FC = () => {
     onOpen();
   };
 
-  
+
   return (
     <div className="w-full mb-16">
       <div className="w-full h-16 bg-green-100 z-50 hidden lg:flex items-center relative custom-light-effect">
         <div className="container mx-auto px-4 flex items-center justify-between">
-          <div className="flex flex-wrap gap-2 lg:gap-4 xl:gap-7 lg:ml-8 xl:ml-48">
+          <div className="flex items-center gap-2 lg:gap-2.5 xl:gap-4 lg:ml-2 xl:ml-12">
             <button
               onClick={() => handleClickScroll("abordagem")}
-              className="px-3 lg:px-4 xl:px-5 py-2 bg-[#10826B] rounded-full cursor-pointer hover:opacity-90 transition-all"
+              className="px-2.5 lg:px-3 xl:px-4 py-1.5 bg-[#10826B] rounded-full cursor-pointer hover:opacity-90 transition-all"
             >
-              <span className="text-white text-sm lg:text-base font-semibold uppercase leading-none tracking-wide whitespace-nowrap">
+              <span className="text-white text-xs lg:text-xs xl:text-sm font-semibold uppercase leading-none tracking-wide whitespace-nowrap">
                 ABORDAGEM
               </span>
             </button>
-            
+
             <button
               onClick={() => handleClickScroll("gc")}
-              className="px-3 lg:px-4 xl:px-5 py-2 bg-[#10826B] rounded-full cursor-pointer hover:opacity-90 transition-all"
+              className="px-2.5 lg:px-3 xl:px-4 py-1.5 bg-[#10826B] rounded-full cursor-pointer hover:opacity-90 transition-all"
             >
-              <span className="text-white text-sm lg:text-base font-semibold uppercase leading-none tracking-wide whitespace-nowrap">
+              <span className="text-white text-xs lg:text-xs xl:text-sm font-semibold uppercase leading-none tracking-wide whitespace-nowrap">
                 GOOGLE CLOUD
               </span>
             </button>
-            
+
             <button
               onClick={() => handleClickScroll("servicos")}
-              className="px-3 lg:px-4 xl:px-5 py-2 bg-[#10826B] rounded-full cursor-pointer hover:opacity-90 transition-all"
+              className="px-2.5 lg:px-3 xl:px-4 py-1.5 bg-[#10826B] rounded-full cursor-pointer hover:opacity-90 transition-all"
             >
-              <span className="text-white text-sm lg:text-base font-semibold uppercase leading-none tracking-wide whitespace-nowrap">
+              <span className="text-white text-xs lg:text-xs xl:text-sm font-semibold uppercase leading-none tracking-wide whitespace-nowrap">
                 SERVIÇOS
               </span>
             </button>
-            
+
             <button
               onClick={() => handleClickScroll("clientes")}
-              className="px-3 lg:px-4 xl:px-5 py-2 bg-[#10826B] rounded-full cursor-pointer hover:opacity-90 transition-all"
+              className="px-2.5 lg:px-3 xl:px-4 py-1.5 bg-[#10826B] rounded-full cursor-pointer hover:opacity-90 transition-all"
             >
-              <span className="text-white text-sm lg:text-base font-semibold uppercase leading-none tracking-wide whitespace-nowrap">
+              <span className="text-white text-xs lg:text-xs xl:text-sm font-semibold uppercase leading-none tracking-wide whitespace-nowrap">
                 CLIENTES
               </span>
             </button>
           </div>
-          <div className="lg:mr-8 xl:mr-16">
+          <div className="lg:mr-2 xl:mr-12 flex items-center gap-1.5 lg:gap-2">
             <button
               onClick={() => handleOpen("parceiro")} // Modificado aqui
-              className="px-3 lg:px-4 xl:px-5 py-2 bg-[#487CBF] rounded-full cursor-pointer hover:opacity-90 transition-all"
+              className="px-2.5 lg:px-3 xl:px-4 py-1.5 bg-[#487CBF] rounded-full cursor-pointer hover:opacity-90 transition-all"
             >
-              <span className="text-white text-sm lg:text-base font-semibold uppercase leading-none tracking-wide whitespace-nowrap">
+              <span className="text-white text-xs lg:text-xs xl:text-sm font-semibold uppercase leading-none tracking-wide whitespace-nowrap">
                 SEJA NOSSO PARCEIRO
               </span>
             </button>
+
+            <Link
+              href="/login"
+              className="px-2.5 lg:px-3 xl:px-4 py-1.5 bg-[#10826B] rounded-full cursor-pointer hover:opacity-90 transition-all flex items-center justify-center no-underline"
+            >
+              <span className="text-white text-xs lg:text-xs xl:text-sm font-semibold uppercase leading-none tracking-wide whitespace-nowrap">
+                LOGIN
+              </span>
+            </Link>
           </div>
         </div>
       </div>
-      <div className="w-full h-24 pt-6 bg-[#10826B] justify-center items-start gap-7 flex lg:hidden">
+      <div className="w-full h-24 pt-6 bg-[#10826B] justify-center items-start gap-7 flex lg:hidden relative px-4">
         <Image
           src="logo-branca.png"
           width={180}
           height={200}
           alt="Logo Kuberlink"
         ></Image>
+        <Link
+          href="/login"
+          className="absolute right-4 top-1/2 -translate-y-1/2 mt-3 px-3 py-1.5 bg-[#487CBF] rounded-full text-white text-xs font-semibold uppercase tracking-wide cursor-pointer hover:opacity-90 transition-all no-underline"
+        >
+          Login
+        </Link>
       </div>
       <div className="w-full  lg:bg-gradient-to-b lg:from-green-100 lg:to-white">
         <div className="container flex flex-col align-middle  lg:flex-row lg:justify-around">
@@ -101,7 +117,7 @@ const Header: React.FC = () => {
               <div className="text-neutral-600 text-lg lg:text-xl font-normal">
                 Na KuberLink, unimos automação, segurança e monitoramento para
                 entregar soluções DevOps que aceleram seu desenvolvimento. Com
-                foco em gestão de projetos em cloud, observabilidade, práticas
+                foco em gestão de projetos in cloud, observabilidade, práticas
                 de FinOps e segurança, garantimos operação segura e eficiente,
                 maximizando o desempenho e otimizando custos.
                 <p className="font-semibold mt-8 lg:mt-10 lg:text-[#10826B] lg:w-[500px] xl:w-[500px]">
@@ -118,7 +134,7 @@ const Header: React.FC = () => {
                   src="gcp_partner.png"
                   width={200}
                   height={200}
-                  alt="Google Clooud"
+                  alt="Google Cloud"
                 ></Image>
               </div>
               <div
@@ -186,7 +202,7 @@ const Header: React.FC = () => {
                 <ModalBody className="p-0">
                   <div className="relative p-6">
                     {/* Botão de fechar no canto superior direito */}
-                    <button 
+                    <button
                       onClick={onClose}
                       className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
                     >
@@ -216,8 +232,8 @@ const Header: React.FC = () => {
                     </div>
 
                     <p className="text-gray-600 text-lg leading-relaxed max-w-3xl mx-auto text-center">
-                      Estamos empolgados em apresentar o Programa de Indicações Kuberlink, uma iniciativa criada para 
-                      fortalecer nossa rede de parceiros e impulsionar soluções em Cloud. Nosso objetivo é construir um 
+                      Estamos empolgados em apresentar o Programa de Indicações Kuberlink, uma iniciativa criada para
+                      fortalecer nossa rede de parceiros e impulsionar soluções em Cloud. Nosso objetivo é construir um
                       ecossistema de colaboração onde todos saem ganhando, enquanto promovemos inovação e eficiência.
                     </p>
 
@@ -249,9 +265,9 @@ const Header: React.FC = () => {
                         </div>
 
                         <div className="w-96">
-                          <img 
-                            src="iso_certification_amico.png" 
-                            alt="Ilustração" 
+                          <img
+                            src="iso_certification_amico.png"
+                            alt="Ilustração"
                             className="w-full h-60 object-contain"
                           />
                         </div>
@@ -269,7 +285,7 @@ const Header: React.FC = () => {
                               Quais os tipos de projetos podem ser indicados ?
                             </h3>
                           </div>
-                          
+
                           <div className="ml-10">
                             <div className="text-gray-700">
                               <span className="text-gradient-finops font-semibold inline">• Implementação de novos serviços em Cloud:</span>
@@ -290,9 +306,9 @@ const Header: React.FC = () => {
                           </div>
                         </div>
                         <div className="w-96">
-                          <img 
-                            src="international_trade_amigo.png" 
-                            alt="Ilustração" 
+                          <img
+                            src="international_trade_amigo.png"
+                            alt="Ilustração"
                             className="w-full h-60 object-contain"
                           />
                         </div>
@@ -310,7 +326,7 @@ const Header: React.FC = () => {
                               Como funciona?
                             </h3>
                           </div>
-                          
+
                           <div className="ml-10">
                             <div className="text-gray-700">
                               <span className="text-gradient-finops font-semibold inline">1. Indique um projeto:</span>
@@ -331,9 +347,9 @@ const Header: React.FC = () => {
                           </div>
                         </div>
                         <div className="w-96">
-                          <img 
-                            src="starting_business_amico.png" 
-                            alt="Ilustração" 
+                          <img
+                            src="starting_business_amico.png"
+                            alt="Ilustração"
                             className="w-full h-60 object-contain"
                           />
                         </div>
@@ -343,9 +359,9 @@ const Header: React.FC = () => {
                     {/* CTA Final */}
                     <div className="flex items-start justify-between gap-8 bg-gray-50">
                       <div className="w-80">
-                        <img 
-                          src="journey_amico.png" 
-                          alt="Ilustração" 
+                        <img
+                          src="journey_amico.png"
+                          alt="Ilustração"
                           className="w-full h-auto object-contain"
                         />
                       </div>
@@ -367,7 +383,7 @@ const Header: React.FC = () => {
                         <p className="text-gray-700 mb-6">
                           Faça parte dessa transformação e aproveite as vantagens de ser um parceiro ativo na construção de soluções que moldam o amanhã.
                         </p>
-                        
+
                         <p className="text-gradient-finops font-semibold">
                           Indique um projeto agora e conquiste seu lugar no topo da inovação!
                         </p>
@@ -385,8 +401,8 @@ const Header: React.FC = () => {
                           Entrar em contato
                         </a>
                       </div>
+                    </div>
                   </div>
-                </div>
                 </ModalBody>
               </>
             )}
