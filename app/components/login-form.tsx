@@ -26,34 +26,39 @@ export default function LoginForm() {
 
     // Função para identificar o perfil e redirecionar
     const handleRedirectAfterAuth = async (userId: string, userEmail: string | null) => {
-        // 1. Verifica se é Admin
-        const adminDocRef = doc(db, "admins", userId);
-        const adminDoc = await getDoc(adminDocRef);
+        try {
+            // 1. Verifica se é Admin
+            const adminDocRef = doc(db, "admins", userId);
+            const adminDoc = await getDoc(adminDocRef);
 
-        if (adminDoc.exists()) {
-            // Atualiza o lastLogin do admin
-            await setDoc(adminDocRef, { lastLoginAt: serverTimestamp() }, { merge: true });
-            router.push("/welcome/admin");
-            return;
-        }
+            if (adminDoc.exists()) {
+                // Atualiza o lastLogin do admin
+                await setDoc(adminDocRef, { lastLoginAt: serverTimestamp() }, { merge: true });
+                router.push("/welcome/admin");
+                return;
+            }
 
-        // 2. Verifica se é Cliente existente
-        const clientDocRef = doc(db, "clients", userId);
-        const clientDoc = await getDoc(clientDocRef);
+            // 2. Verifica se é Cliente existente
+            const clientDocRef = doc(db, "clients", userId);
+            const clientDoc = await getDoc(clientDocRef);
 
-        if (clientDoc.exists()) {
-            // Atualiza o lastLogin do cliente
-            await setDoc(clientDocRef, { lastLoginAt: serverTimestamp() }, { merge: true });
-            router.push("/welcome/client");
-        } else {
-            // 3. Caso não exista em nenhuma coleção, cria um perfil Cliente automático
-            await setDoc(clientDocRef, {
-                email: userEmail,
-                role: "client",
-                createdAt: serverTimestamp(),
-                lastLoginAt: serverTimestamp(),
-            });
-            router.push("/welcome/client");
+            if (clientDoc.exists()) {
+                // Atualiza o lastLogin do cliente
+                await setDoc(clientDocRef, { lastLoginAt: serverTimestamp() }, { merge: true });
+                router.push("/welcome/client");
+            } else {
+                // 3. Caso não exista em nenhuma coleção, cria um perfil Cliente automático
+                await setDoc(clientDocRef, {
+                    email: userEmail,
+                    role: "client",
+                    createdAt: serverTimestamp(),
+                    lastLoginAt: serverTimestamp(),
+                });
+                router.push("/welcome/client");
+            }
+        } catch (dbErr: any) {
+            console.error("Erro no Firestore durante o login:", dbErr);
+            throw new Error(`db-error: [Código/Mensagem: ${dbErr.code || dbErr.message || "Sem detalhes"}]. Verifique as regras de segurança e coleções 'clients'/'admins' no console do Firebase.`);
         }
     };
 
@@ -74,12 +79,14 @@ export default function LoginForm() {
             await handleRedirectAfterAuth(user.uid, user.email);
         } catch (err: any) {
             console.error(err);
-            if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
+            if (err.message && err.message.startsWith("db-error:")) {
+                setError(err.message.replace("db-error:", "").trim());
+            } else if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
                 setError("E-mail ou senha incorretos.");
             } else if (err.code === "auth/invalid-email") {
                 setError("Formato de e-mail inválido.");
             } else {
-                setError("Erro ao autenticar. Tente novamente.");
+                setError(`Erro ao autenticar: ${err.message || err.code || "Tente novamente."}`);
             }
         } finally {
             setLoading(false);
@@ -97,8 +104,10 @@ export default function LoginForm() {
             await handleRedirectAfterAuth(user.uid, user.email);
         } catch (err: any) {
             console.error(err);
-            if (err.code !== "auth/popup-closed-by-user") {
-                setError("Erro ao autenticar com o Google. Tente novamente.");
+            if (err.message && err.message.startsWith("db-error:")) {
+                setError(err.message.replace("db-error:", "").trim());
+            } else if (err.code !== "auth/popup-closed-by-user") {
+                setError(`Erro ao autenticar com o Google: ${err.message || err.code || "Erro inesperado."}`);
             }
         } finally {
             setLoading(false);
