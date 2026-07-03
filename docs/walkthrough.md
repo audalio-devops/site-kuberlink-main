@@ -1,10 +1,10 @@
-# Walkthrough: Área de Login e Integração com Firebase
+# Walkthrough: Área de Login, Integração com Firebase e Autenticação Google
 
-Implementamos com sucesso os botões de controle de acesso no Header da página principal e a página de login dedicada, com autenticação integrada ao Firebase (Email/Senha e Google OAuth).
+Implementamos com sucesso os botões de controle de acesso no Header da página principal, o modal/página de login dedicada com autenticação integrada ao Firebase (Email/Senha e Google OAuth), e a exibição de dados ricos do perfil nas áreas restritas.
 
 ---
 
-## 🛠️ Alterações Realizadas
+## 🛠️ Alterações de Interface e Login (Fase 1)
 
 ### 1. Botão de Login no Cabeçalho
 - **Componente**: [Header.tsx](file:///c:/Projetos/site-kuberlink-main/app/components/Header.tsx)
@@ -13,14 +13,10 @@ Implementamos com sucesso os botões de controle de acesso no Header da página 
   - Ajuste de margens na versão Desktop para evitar a quebra dos itens para uma segunda linha (reduzido `ml-48` para `ml-12` em resoluções `xl`, e redimensionado texto e preenchimento dos botões).
   - Adicionado botão de **"Login"** na barra mobile com posicionamento absoluto para manter a harmonia visual.
 
----
-
 ### 2. Configurações de Conexão Firebase
 - **Arquivo**: [firebase.ts](file:///c:/Projetos/site-kuberlink-main/app/lib/firebase.ts)
   - Configuração do client do Firebase utilizando variáveis de ambiente `.env.local` com fallbacks seguros apontando para o ambiente de homologação do projeto.
-  - Exportados instâncias de `auth`, `db` (Firestore) e `googleProvider`.
-
----
+  - Exportadas instâncias de `auth`, `db` (Firestore) e `googleProvider`.
 
 ### 3. Tela de Login e Formulário Dinâmico (Overlay)
 - **Arquivos**:
@@ -28,37 +24,51 @@ Implementamos com sucesso os botões de controle de acesso no Header da página 
   - [components/login-form.tsx](file:///c:/Projetos/site-kuberlink-main/app/components/login-form.tsx) (Lógica do formulário de autenticação em card compacto)
 - **Recursos**:
   - O site principal carrega no fundo de forma passiva (transparência e blur), funcionando como um modal sobreposto.
-  - O card de login foi centralizado e reduzido de tamanho (`max-w-[420px]`) para se adequar ao design de `docs/TelaLogin.png`.
-  - O logotipo da KuberLink foi movido para dentro do card, posicionado no cabeçalho em layout de linha (flex row) junto do título e texto de boas-vindas.
+  - O card de login foi centralizado e reduzido de tamanho (`max-w-[420px]`).
+  - O logotipo da KuberLink inserido no card, posicionado no cabeçalho em layout de linha (flex row) junto do título e texto de boas-vindas.
   - Validação nativa de e-mail e tratamento de erros do Firebase.
   - Controle interativo para mostrar/ocultar senha (ícones de olho aberto/fechado).
   - Opção para "Esqueci minha senha" que envia um e-mail de redefinição através do Firebase Auth.
   - Botão de validação de login via Google.
-  - O botão de **"<- Voltar para o site"** foi reposicionado na parte de baixo de dentro do card, centralizado em formato de pílula.
+  - O botão de **"<- Voltar para o site"** posicionado na parte de baixo de dentro do card, centralizado em formato de pílula.
 
 ---
 
-### 4. Telas de Welcoming/Direcionamento
+## 🔐 Autenticação Google, Perfis e Diagnósticos (Fase 2)
+
+### 1. Exibições de Perfil com Metadados Completos
 - **Arquivos**:
-  - [welcome/admin/page.tsx](file:///c:/Projetos/site-kuberlink-main/app/welcome/admin/page.tsx)
   - [welcome/client/page.tsx](file:///c:/Projetos/site-kuberlink-main/app/welcome/client/page.tsx)
-- **Recursos**:
-  - Exibe um painel de boas-vindas seguro com proteção na inicialização.
-  - Exibe informações básicas carregadas do documento como UID, E-mail, Função no sistema e data do último acesso.
-  - Ação de logout integrada de volta para a Home principal.
+  - [welcome/admin/page.tsx](file:///c:/Projetos/site-kuberlink-main/app/welcome/admin/page.tsx)
+- **Melhorias Aplicadas**:
+  - Corrigido erro de caminhos de importação do Firebase (`../../lib/firebase`).
+  - Adicionado suporte à renderização do avatar do Google (`photoURL`) com tratamento de fallback e borda gradiente.
+  - Modificado cabeçalho para exibir o nome completo retornado (`displayName`).
+  - Exibição estruturada do tipo de provedor utilizado ("Google Account" vs "E-mail / Senha").
+  - Adicionado um painel colapsável interativo contendo os metadados JSON brutos retornado pelo Firebase Auth (`authMetadata`) para desenvolvimento/auditoria de dados.
+
+### 2. Diagnóstico e Tratamento Isolado de Erros de Autenticação e Firestore
+- **Função**: `handleRedirectAfterAuth` no [login-form.tsx](file:///c:/Projetos/site-kuberlink-main/app/components/login-form.tsx)
+  - **Isolamento de Erros:** O fluxo de redirecionamento tenta ler/gravar nas coleções `clients` e `admins` do Firestore. Se o acesso for negado (regras de segurança) ou as coleções não existirem, o erro é isolado sob a tag `db-error`.
+  - **Mensagem Detalhada na Tela:** Se ocorrer uma falha no Firestore após a autenticação com sucesso, a interface exibirá a mensagem exata com o erro (ex: `permission-denied` ou `unavailable`), indicando ao usuário para verificar as permissões/regras de escrita no Firebase.
+  - **Erros do Google Auth:** Se o login do Google falhar antes (ex: provedor Google desativado no Firebase console), a mensagem trará o código descritivo exato do Firebase, como `auth/operation-not-allowed`.
 
 ---
 
-## 🌟 Evidências Visuais e Resultados
+## 🌟 Evidências Visuais e Resultados (Fase 1)
 
 ### Alinhamento Horizontal dos Botões no Header (Home)
-Os botões estão totalmente alinhados e ajustados, sem quebras:
 ![Header Alignment](/C:/Users/audalio/.gemini/antigravity/brain/1f930c69-2672-4f56-8a07-bf4e78eab1b8/header_alignment_1782950111620.png)
 
 ### Layout da Tela de Login Overlay e Card Redimensionado (/login)
-O formulário de login centralizado em modal overlay com desfoque e tamanho encolhido:
 ![Login Overlay Layout](/C:/Users/audalio/.gemini/antigravity/brain/1f930c69-2672-4f56-8a07-bf4e78eab1b8/login_page_centered_card_1782952361031.png)
 
-### Gravação das Ações do Teste Visual do Overlay
-Veja a gravação do ajuste de layout da tela de login:
-![Browser Session Recording Overlay](/C:/Users/audalio/.gemini/antigravity/brain/1f930c69-2672-4f56-8a07-bf4e78eab1b8/login_overlay_check_1782952278237.webp)
+---
+
+## 🧪 Validação de Código e Compilação
+
+O projeto foi verificado estaticamente:
+```bash
+npx tsc --noEmit
+```
+**Resultado:** Sucesso (Código 0). Sem erros de linting ou de tipagem no projeto após as modificações de diagnóstico.
